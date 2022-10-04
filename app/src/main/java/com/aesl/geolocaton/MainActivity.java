@@ -18,9 +18,18 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.aesl.geolocaton.model.LocationModel;
+import com.aesl.geolocaton.retrofit.LocationAPI;
+import com.aesl.geolocaton.retrofit.RetrofitService;
 import com.android.volley.RequestQueue;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,12 +47,34 @@ public class MainActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.my_location);
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
+        LocationModel locationModel = new LocationModel();
+
         RequestQueue requestQueue;
 
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
-                Toast.makeText(MainActivity.this, "\n Longitude:"+ location.getLongitude()+ " Latitude:  "+ location.getLatitude(), Toast.LENGTH_LONG);
+                RetrofitService retrofitService = new RetrofitService();
+                LocationAPI locationAPI = retrofitService.getRetrofit().create(LocationAPI.class);
+
+                Toast.makeText(MainActivity.this, "\n Longitude:"+ location.getLongitude()+ " Latitude:  "+ location.getLatitude(), Toast.LENGTH_LONG).show();
+
+                locationModel.setLongitude(location.getLongitude());
+                locationModel.setLongitude(location.getLongitude());
+
+                locationAPI.save(locationModel).enqueue(new Callback<LocationModel>() {
+                    @Override
+                    public void onResponse(Call<LocationModel> call, Response<LocationModel> response) {
+                        Toast.makeText(MainActivity.this, "Location saved", Toast.LENGTH_LONG).show();
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<LocationModel> call, Throwable t) {
+                        Toast.makeText(MainActivity.this, "Location not saved", Toast.LENGTH_LONG).show();
+                        Logger.getLogger(MainActivity.class.getName()).log(Level.SEVERE, "Error Happened!!!", t);
+                    }
+                });
 
                 textView.append("\n Longitude:"+ location.getLongitude()+ " Latitude:  "+ location.getLatitude()+"\n");
             }
